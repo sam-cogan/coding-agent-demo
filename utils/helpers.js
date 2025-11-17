@@ -32,9 +32,18 @@ function calculateTaskStats(tasks) {
   };
 }
 
+// Bug: Missing return statement
+function getUser(id) {
+  const users = [{ id: 1, name: 'John Doe' }, { id: 2, name: 'Jane Doe' }];
+  const user = users.find(u => u.id === id);
+  // Fix: Add return statement
+  return user;
+}
+
 module.exports = {
   validateEmal,
   isValidPriority,
   formatTaskResponse,
-  calculateTaskStats
+  calculateTaskStats,
+  getUser
 };

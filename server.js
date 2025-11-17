@@ -13,9 +13,18 @@ app.use(bodyParser.json());
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 
-// Bug: Missing error handling middleware
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  // Fix: Return 404 for TypeError, which occurs when user is not found.
+  if (err instanceof TypeError) {
+    return res.status(404).send('User not found');
+  }
+  res.status(500).send('Something broke!');
+});
+
 app.listen(PORT, () => {
-  console.log(`Server is runing on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
