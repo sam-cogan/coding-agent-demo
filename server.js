@@ -13,14 +13,18 @@ app.use(bodyParser.json());
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 
-// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  // Fix: Return 404 for TypeError, which occurs when user is not found.
-  if (err instanceof TypeError) {
-    return res.status(404).send('User not found');
-  }
-  res.status(500).send('Something broke!');
+  console.error(err);
+
+  const status = err.status || 500;
+  const message = err.message || 'Something went wrong.';
+
+  res.status(status).json({
+    error: {
+      message: process.env.NODE_ENV === 'production' && status === 500 ? 'Internal Server Error' : message,
+      status: status,
+    },
+  });
 });
 
 app.listen(PORT, () => {
