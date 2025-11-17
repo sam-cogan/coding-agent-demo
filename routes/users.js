@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { validateEmal } = require('../utils/helpers');
 
-// In-memory storage
+
 let users = [
-  { id: 1, username: 'admin', email: 'admin@example.com', password: 'admin123' }, // Bug: Storing plain text passwords!
+  { id: 1, username: 'admin', email: 'admin@example.com', password: 'admin123' }, 
   { id: 2, username: 'user1', email: 'user@example.com', password: 'password' }
 ];
 
@@ -28,21 +29,34 @@ router.get('/:id', (req, res) => {
 
 // Create user
 router.post('/', (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, age } = req.body;
   
-  // Bug: No email validation
-  // Bug: No password strength requirements
-  // Bug: No check for duplicate usernames/emails
+  // Validation for name, email, and age
+  if (!username || typeof username !== 'string' || username.trim() === '') {
+    return res.status(400).json({ error: 'Username is required and must be a non-empty string.' });
+  }
+
+  if (!email || !validateEmal(email)) {
+    return res.status(400).json({ error: 'A valid email is required.' });
+  }
+
+  if (age !== undefined && (typeof age !== 'number' || age <= 0)) {
+    return res.status(400).json({ error: 'If provided, age must be a positive number.' });
+  }
+
   
   const newUser = {
     id: users.length + 1,
-    username,
+    username: username.trim(),
     email,
-    password // Bug: Storing plain text password
+    password,
+    age
   };
   
   users.push(newUser);
-  res.status(201).json(newUser); // Bug: Returning password in response
+  const userResponse = { ...newUser };
+  delete userResponse.password; // Do not return password
+  res.status(201).json(userResponse);
 });
 
 // Login endpoint
@@ -51,8 +65,6 @@ router.post('/login', (req, res) => {
   
   const user = users.find(u => u.username === username && u.password === password);
   
-  // Bug: No rate limiting for login attempts
-  // Bug: Returns user object with password
   if (user) {
     res.json({ success: true, user });
   } else {
